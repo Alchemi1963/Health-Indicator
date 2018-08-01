@@ -36,8 +36,9 @@ public class GUIOptions extends GuiScreen{
 	
 	@Override
 	protected void actionPerformed(GuiButton button) throws IOException {
-		// TODO Auto-generated method stub
-		super.actionPerformed(button);
+		if (button == buttonClose) {
+			mc.player.closeScreen();
+		}
 	}
 	
 	

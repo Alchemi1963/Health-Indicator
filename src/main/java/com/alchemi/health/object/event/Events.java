@@ -29,7 +29,7 @@ public class Events {
 		
 		if (Keyboard.isKeyDown(KeyBindings.options.getKeyCode()) && !player.world.isRemote) {
 			
-			new GUIOptions();
+			mc.displayGuiScreen(new GUIOptions());
 			
 		}
 		
