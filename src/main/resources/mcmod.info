@@ -1,0 +1,14 @@
+[
+{
+  "modid": "health",
+  "name": "Health Indicator",
+  "description": "A remake of the old Damage Indicators mod.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "authorList": ["Alchemi"],
+  "credits": "The Forge and FML guys, for making forge & the original creator of the old mod, for creating the idea.",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
