@@ -9,7 +9,7 @@ public class ProgressBar extends Gui{
 
 	private ResourceLocation texture;
 	private PBDirection direction;
-	private int posX, posY;
+	public int posX, posY;
 	private int width, height;
 	private int textureX, textureY;
 	
@@ -36,6 +36,14 @@ public class ProgressBar extends Gui{
 	public ProgressBar setMax(float f) {
 		this.max = f;
 		return this;
+	}
+	
+	public float getMax() {
+		return max;
+	}
+	
+	public float getMin() {
+		return min;
 	}
 	
 	private int getProgressWidth() {

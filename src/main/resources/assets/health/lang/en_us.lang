@@ -1,0 +1,9 @@
+gui.options=In-game options
+gui.style=Style Settings
+gui.colour=Font Colour
+gui.position=Position
+
+gui.classic=Classic Indicator
+gui.doctor_who=Doctor Who Indicator
+gui.transparent=Transparent Default
+gui.default=Default Indicator

@@ -1,7 +1,9 @@
-package com.alchemi.health.object.gui;
+package com.alchemi.health.object.gui.indicators;
 
 import java.awt.Color;
 
+import com.alchemi.health.Config;
+import com.alchemi.health.Health;
 import com.alchemi.health.Reference;
 import com.alchemi.health.object.progressbar.ProgressBar;
 import com.alchemi.health.object.progressbar.ProgressBar.PBDirection;
@@ -13,7 +15,7 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.MultiPartEntityPart;
 import net.minecraft.entity.boss.EntityDragon;
 import net.minecraft.entity.monster.IMob;
@@ -22,48 +24,57 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.MathHelper;
 
-public class IndicatorGUI extends Gui {
+public abstract class AbstractIndicator extends Gui {
 
-	private final Minecraft mc;
-	private static ResourceLocation TEXTURES = new ResourceLocation(Reference.MOD_ID, "textures/gui/default_indicator.png");
+	Minecraft mc;
+	Entity ent;
+	ResourceLocation TEXTURES;
 	
-	private ProgressBar health;
+	ProgressBar health;
 	
-	public final String name;
+	public String name;
 	
-	private static int pos_x = 10;
-	private static int pos_y = 10;
+	public int pos_x = Config.pos.x;
+	public int pos_y = Config.pos.y;
 	
-	public static int health_texture_x = 48;
-	public static int health_texture_y = 45;
-	public static int health_overlay_texture_x = 0;
-	public static int health_overlay_texture_y = 69;
-	public static int health_width = 124;
-	public static int health_height = 16;
+	int health_texture_x = 48;
+	int health_texture_y = 26;
+	int health_overlay_texture_x = 0;
+	int health_overlay_texture_y = 69;
+	int health_width = 124;
+	int health_height = 16;
 	
-	public static int width = 180;
-	public static int height = 69;
+	int width = 180;
+	int height = 69;
 	
-	public static int type_width = 16;
-	public static int type_heigth = 16;
-	public static int type_texture_x = 17;
-	public static int type_texture_y = 46;
+	int type_width = 16;
+	int type_heigth = 16;
+	int type_texture_x = 17;
+	int type_texture_y = 46;
 	
-	public static int name_width = 124;
-	public static int name_height = 34;
-	public static int name_x = 52;
-	public static int name_y = 20;
+	int name_width = 125;
+	int name_height = 17;
+	int name_x = 110;
+	int name_y = 8;
 	
-	public static int entity_x = 12;
-	public static int entity_y = 12;
-	public static int entity_width = 34;
-	public static int entity_height = 34;
+	int entity_x = 25;
+	int entity_y = 10;
+	int entity_width = 30;
+	int entity_height = 30;
 	
-	private Color colour = new Color(255,255,255,255);
+	Color colour = new Color(255,255,255,255);
 
-	public IndicatorGUI(Minecraft mc, Entity ent, String name) {
-		this.name = name;
-		this.mc = mc;
+	public int getWidth() { return this.width; }
+	public int getHeight() { return this.height; }
+	
+	public void draw() {
+		if (Config.col.r != 255 || Config.col.g != 255 || Config.col.b != 255 || Config.col.a != 255) {
+			colour = new Color(Config.col.r, Config.col.g, Config.col.b, Config.col.a);
+		}
+		
+		if (TEXTURES == null) {
+			TEXTURES = new ResourceLocation(Reference.MOD_ID, "textures/gui/default_indicator.png");
+		}
 		mc.getTextureManager().bindTexture(TEXTURES);
 		
 		if (ent instanceof MultiPartEntityPart) {
@@ -72,8 +83,8 @@ public class IndicatorGUI extends Gui {
 		
 		health = new ProgressBar(TEXTURES, PBDirection.LEFT_RIGHT, health_texture_x + pos_x, health_texture_y + pos_y, health_width, health_height, health_overlay_texture_x, health_overlay_texture_y);
 	
-		health.setMax(((EntityLiving)ent).getMaxHealth());
-		health.setMin(((EntityLiving)ent).getHealth());
+		health.setMax(((EntityLivingBase)ent).getMaxHealth());
+		health.setMin(((EntityLivingBase)ent).getHealth());
 		
 		//draw background
 		drawTexturedModalRect(pos_x, pos_y, 0, 0, width, height);
@@ -96,25 +107,34 @@ public class IndicatorGUI extends Gui {
 		float scaleX = name_width/mc.fontRenderer.getStringWidth(ent.getName());
 		float scaleY = name_height/mc.fontRenderer.FONT_HEIGHT;
 		float scale = Math.min(scaleX, scaleY);
+		mc.fontRenderer.drawString(Health.df.format(health.getMin()) + "/" + Health.df.format(health.getMax()), health_width/2 + health.posX - mc.fontRenderer.getStringWidth(Health.df.format(health.getMin()) + "/" + Health.df.format(health.getMax()))/2, health_height/2 - mc.fontRenderer.FONT_HEIGHT/2 + health.posY, colour.getRGB());
 		GlStateManager.scale(scale, scale, scale);
-		mc.fontRenderer.drawString(ent.getName(), (name_x+pos_x)/scale, (name_y+mc.fontRenderer.FONT_HEIGHT/2)/scale, colour.getRGB(), false);
+		mc.fontRenderer.drawString(ent.getName(), (name_x+pos_x - mc.fontRenderer.getStringWidth(ent.getName()) / 2)/scale, (pos_y + name_y+mc.fontRenderer.FONT_HEIGHT/2)/scale, colour.getRGB(), false);
 		GlStateManager.scale(1.0/scale,1.0/scale,1.0/scale);
-		
 	}
+
+	abstract void setColour(Color col);
 	
-	private void drawEnt(Entity ent) {
+	abstract void setPosition(int x, int y);
+	
+	public void drawEnt(Entity ent) {
 		GlStateManager.enableColorMaterial();
 		GlStateManager.pushMatrix();
-		int scaleY = MathHelper.ceil(entity_width / ent.height);
-		int scaleX = MathHelper.ceil(entity_height / ent.width);
-		int	scale = (int) (Math.min(scaleX, scaleY)/1.2);
-	
-		GlStateManager.translate(entity_x*2 + pos_x, entity_y*2 + pos_y, 50.0F);
+		float scaleX;
+		
+		if (ent.width <= 0.8) scaleX = MathHelper.ceil(entity_width / ent.width);
+		else scaleX = MathHelper.ceil((entity_width*2/3)/ent.width);
+		
+		float scaleY = MathHelper.ceil(entity_height / ent.height);
+		double scale = Math.min(scaleX, scaleY);
+		
+		GlStateManager.translate(entity_x + pos_x, pos_y + entity_y + entity_height, 50.0F);
 		GlStateManager.scale((float) (-scale), (float) scale, (float) scale);
 		GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
 		GlStateManager.rotate(135.0F, 0.0F, 1.0F, 0.0F);
 		GlStateManager.rotate(-100.0F, 0.0F, 1.0F, 0.0F);
-		GlStateManager.rotate(0.0f, 1.0F, 0.0F, 0.0F);
+		GlStateManager.rotate(0.0f, 1.0F, 0.0F, 0.0F); 
+		if (ent.getLookVec().z < 0) GlStateManager.rotate(180.0F, 0.0F, 1.0F, 0.0F);
 	
 		RenderHelper.enableStandardItemLighting();
 	
@@ -122,7 +142,7 @@ public class IndicatorGUI extends Gui {
 		RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
 		rendermanager.setPlayerViewY(180.0F);
 		rendermanager.setRenderShadow(false);
-		rendermanager.renderEntity(ent, 0.0D, -ent.height/2, 0.0D, 0.0F, 1.0F, false);
+		rendermanager.renderEntity(ent, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, false);
 		rendermanager.setRenderShadow(true);
 	
 		GlStateManager.popMatrix();
@@ -133,16 +153,4 @@ public class IndicatorGUI extends Gui {
 		GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
 	}
 	
-	public void setColour(Color col) {
-		colour = col;
-	}
-	
-	public void setPosition(int x, int y) {
-		pos_x = x;
-		pos_y = y;
-	}
-	
-	public void setTextures(ResourceLocation new_location) {
-		TEXTURES = new_location;
-	}
 }
